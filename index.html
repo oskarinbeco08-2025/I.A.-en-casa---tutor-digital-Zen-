@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TutorIA - Sistema de Apoyo Estudiantil con IA</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #ffba08;
+            --danger: #f94144;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 0;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-tabs li {
+            margin: 0 15px;
+        }
+        
+        .nav-tabs a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs a:hover, .nav-tabs a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .prompt-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .category {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .category:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .prompt-list {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .prompt-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .prompt-item:hover {
+            background: #e9ecef;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 15px 0;
+            resize: vertical;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .student-list {
+            margin-top: 20px;
+        }
+        
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <h1>TutorIA</h1>
+                <ul class="nav-tabs">
+                    <li><a href="#" class="tab-link active" data-tab="estudiante">Estudiante</a></li>
+                    <li><a href="#" class="tab-link" data-tab="profesor">Profesor</a></li>
+                    <li><a href="#" class="tab-link" data-tab="configuracion">Configuración</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Panel Estudiante -->
+        <div id="estudiante" class="tab-content active">
+            <h2>Panel de Apoyo con IA</h2>
+            <div class="card">
+                <h3>Selecciona el tipo de ayuda que necesitas:</h3>
+                
+                <div class="prompt-categories">
+                    <div class="category" onclick="togglePromptList('matematicas')">
+                        <h4>Matemáticas</h4>
+                        <div id="matematicas-list" class="prompt-list">
+                            <div class="prompt-item" onclick="selectPrompt('explicacion-matematicas')">Necesito explicación de un concepto</div>
+                            <div class="prompt-item" onclick="selectPrompt('ejercicios-matematicas')">Quiero ejercicios para practicar</div>
+                            <div class="prompt-item" onclick="selectPrompt('correccion-matematicas')">Necesito que revises mi solución</div>
+                        </div>
+                    </div>
+                    
+                    <div class="category" onclick="togglePromptList('ciencias')">
+                        <h4>Ciencias</h4>
+                        <div id="ciencias-list" class="prompt-list">
+                            <div class="prompt-item" onclick="selectPrompt('explicacion-ciencias')">Explicación de fenómenos científicos</div>
+                            <div class="prompt-item" onclick="selectPrompt('experimentos-ciencias')">Diseño de experimentos</div>
+                            <div class="prompt-item" onclick="selectPrompt('analisis-ciencias')">Análisis de resultados</div>
+                        </div>
+                    </div>
+                    
+                    <div class="category" onclick="togglePromptList('lenguaje')">
+                        <h4>Lenguaje</h4>
+                        <div id="lenguaje-list" class="prompt-list">
+                            <div class="prompt-item" onclick="selectPrompt('correccion-texto')">Corrección de texto</div>
+                            <div class="prompt-item" onclick="selectPrompt('ideas-escritura')">Generación de ideas para escribir</div>
+                            <div class="prompt-item" onclick="selectPrompt('analisis-literario')">Análisis literario</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Tu consulta:</h3>
+                <textarea id="prompt-input" placeholder="Haz clic en una de las opciones anteriores o escribe tu consulta aquí..."></textarea>
+                <button onclick="generateResponse()">Obtener ayuda de la IA</button>
+            </div>
+            
+            <div class="card">
+                <h3>Respuesta de la IA:</h3>
+                <div id="ia-response" style="min-height: 200px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    La respuesta aparecerá aquí...
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="markAsUseful()">✓ Útil</button>
+                    <button onclick="markAsConfusing()">✗ Confuso</button>
+                    <button onclick="saveInteraction()">Guardar consulta</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel Profesor -->
+        <div id="profesor" class="tab-content">
+            <h2>Panel de Seguimiento para Profesores</h2>
+            
+            <div class="dashboard-grid">
+                <div class="metric-card">
+                    <h4>Total de consultas</h4>
+                    <div class="metric-value" id="total-queries">0</div>
+                    <p>Interacciones con IA</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Promedio de utilidad</h4>
+                    <div class="metric-value" id="usefulness-score">0%</div>
+                    <p>De las respuestas de IA</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Estudiantes activos</h4>
+                    <div class="metric-value" id="active-students">0</div>
+                    <p>En los últimos 7 días</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Patrones de consulta</h3>
+                <div id="query-patterns" style="min-height: 200px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <p>Los datos de uso se visualizarán aquí...</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Estudiantes que necesitan ayuda</h3>
+                <div class="student-list" id="students-needing-help">
+                    <div class="student-item">
+                        <span>Ejemplo: María López</span>
+                        <span>Dificultad con: Álgebra</span>
+                        <div style="width: 100%;">
+                            <small>5 consultas sin marcar como útiles</small>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 20%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel Configuración -->
+        <div id="configuracion" class="tab-content">
+            <h2>Configuración del Sistema</h2>
+            
+            <div class="card">
+                <h3>Personalización de Prompts</h3>
+                <p>Aquí puedes agregar o modificar los prompts predefinidos para los estudiantes:</p>
+                
+                <div style="margin-top: 20px;">
+                    <h4>Agregar nuevo prompt por categoría:</h4>
+                    <select id="category-select">
+                        <option value="matematicas">Matemáticas</option>
+                        <option value="ciencias">Ciencias</option>
+                        <option value="lenguaje">Lenguaje</option>
+                    </select>
+                    
+                    <input type="text" id="new-prompt-title" placeholder="Título del prompt" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px;">
+                    
+                    <textarea id="new-prompt-text" placeholder="Texto del prompt predefinido..." style="width: 100%; min-height: 100px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                    
+                    <button onclick="addNewPrompt()">Agregar Prompt</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Preferencias de IA</h3>
+                <p>Selecciona qué modelos de IA estarán disponibles:</p>
+                
+                <div style="margin-top: 15px;">
+                    <label>
+                        <input type="checkbox" id="deepseek-toggle" checked> DeepSeek
+                    </label>
+                    <br>
+                    <label>
+                        <input type="checkbox" id="chatgpt-toggle" checked> ChatGPT
+                    </label>
+                    <br>
+                    <label>
+                        <input type="checkbox" id="copilot-toggle"> Copilot
+                    </label>
+                    <br>
+                    <label>
+                        <input type="checkbox" id="gemini-toggle"> Gemini
+                    </label>
+                </div>
+                
+                <button style="margin-top: 20px;" onclick="saveAIPreferences()">Guardar Preferencias</button>
+            </div>
+            
+            <div class="card">
+                <h3>Exportar Datos</h3>
+                <p>Descarga los datos de uso para análisis externo:</p>
+                
+                <button onclick="exportData('csv')">Exportar como CSV</button>
+                <button onclick="exportData('excel')">Exportar como Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Almacenamiento de datos (en una implementación real, esto estaría en una base de datos)
+        let interactions = JSON.parse(localStorage.getItem('tutoria_interactions')) || [];
+        let prompts = JSON.parse(localStorage.getItem('tutoria_prompts')) || {
+            matematicas: [
+                { id: 'explicacion-matematicas', text: "Explica el concepto de [concepto] de manera sencilla, con un ejemplo práctico y una analogía cotidiana." },
+                { id: 'ejercicios-matematicas', text: "Proporciona 3 ejercicios sobre [tema] de dificultad progresiva, con sus soluciones explicadas paso a paso." },
+                { id: 'correccion-matematicas', text: "Revisa mi solución a este problema: [pegar problema y solución]. Señala errores y sugiere correcciones." }
+            ],
+            ciencias: [
+                { id: 'explicacion-ciencias', text: "Explica el fenómeno de [fenómeno] como si tuvieras 15 años, usando ejemplos visuales." },
+                { id: 'experimentos-ciencias', text: "Diseña un experimento casero para demostrar [principio científico]. Incluye materiales, pasos y preguntas de reflexión." },
+                { id: 'analisis-ciencias', text: "Ayúdame a analizar estos resultados experimentales: [datos]. ¿Qué patrones observas y qué conclusiones podemos sacar?" }
+            ],
+            lenguaje: [
+                { id: 'correccion-texto', text: "Revisa este texto: [pegar texto]. Corrige ortografía, gramática y sugiere mejoras de estilo y cohesión." },
+                { id: 'ideas-escritura', text: "Genera 5 ideas para escribir sobre [tema]. Cada idea debe incluir personajes, conflicto y escenario potencial." },
+                { id: 'analisis-literario', text: "Analiza [obra literaria] desde la perspectiva de [enfoque crítico]. Destaca los elementos más relevantes." }
+            ]
+        };
+        
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar navegación por pestañas
+            document.querySelectorAll('.tab-link').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Actualizar pestañas activas
+                    document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Si es el panel del profesor, actualizar estadísticas
+                    if (tabId === 'profesor') {
+                        updateTeacherDashboard();
+                    }
+                });
+            });
+            
+            // Cargar prompts predefinidos en la interfaz
+            renderPredefinedPrompts();
+        });
+        
+        // Alternar visibilidad de lista de prompts
+        function togglePromptList(category) {
+            const list = document.getElementById(`${category}-list`);
+            const allLists = document.querySelectorAll('.prompt-list');
+            
+            allLists.forEach(item => {
+                if (item !== list) item.style.display = 'none';
+            });
+            
+            list.style.display = list.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // Seleccionar un prompt predefinido
+        function selectPrompt(promptId) {
+            let promptText = '';
+            
+            // Buscar el texto del prompt en todas las categorías
+            for (const category in prompts) {
+                const found = prompts[category].find(p => p.id === promptId);
+                if (found) {
+                    promptText = found.text;
+                    break;
+                }
+            }
+            
+            if (promptText) {
+                document.getElementById('prompt-input').value = promptText;
+            }
+        }
+        
+        // Generar respuesta de IA (simulado para este prototipo)
+        function generateResponse() {
+            const prompt = document.getElementById('prompt-input').value;
+            if (!prompt.trim()) {
+                alert('Por favor, escribe una consulta o selecciona un prompt predefinido.');
+                return;
+            }
+            
+            // Simular respuesta de IA (en implementación real, se conectaría a una API)
+            const responseArea = document.getElementById('ia-response');
+            responseArea.innerHTML = '<p>Simulando respuesta de IA... (En una implementación real, esto conectaría con DeepSeek/ChatGPT)</p>';
+            
+            // Simular tiempo de procesamiento
+            setTimeout(() => {
+                responseArea.innerHTML = `
+                    <p><strong>Respuesta de IA:</strong></p>
+                    <p>Basado en tu consulta "${prompt.substring(0, 30)}...", aquí tienes una explicación detallada:</p>
+                    <p>1. Primero, es importante entender los conceptos básicos...</p>
+                    <p>2. Luego, podemos aplicar estos conceptos mediante...</p>
+                    <p>3. Finalmente, te sugiero practicar con estos ejercicios...</p>
+                    <p><em>¿Te resultó útil esta respuesta? Califica abajo.</em></p>
+                `;
+                
+                // Registrar la interacción
+                registerInteraction(prompt, responseArea.innerText);
+            }, 1500);
+        }
+        
+        // Registrar interacción en el historial
+        function registerInteraction(prompt, response) {
+            const interaction = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                prompt: prompt,
+                response: response,
+                useful: null,
+                subject: detectSubject(prompt)
+            };
+            
+            interactions.push(interaction);
+            localStorage.setItem('tutoria_interactions', JSON.stringify(interactions));
+        }
+        
+        // Detectar materia basado en el prompt (simplificado)
+        function detectSubject(prompt) {
+            if (prompt.includes('matemática') || prompt.includes('calcul') || prompt.includes('álgebra')) return 'Matemáticas';
+            if (prompt.includes('ciencia') || prompt.includes('física') || prompt.includes('química') || prompt.includes('biológica')) return 'Ciencias';
+            if (prompt.includes('literatura') || prompt.includes('escribir') || prompt.includes('gramática') || prompt.includes('texto')) return 'Lenguaje';
+            return 'General';
+        }
+        
+        // Marcar respuesta como útil
+        function markAsUseful() {
+            if (interactions.length > 0) {
+                interactions[interactions.length - 1].useful = true;
+                localStorage.setItem('tutoria_interactions', JSON.stringify(interactions));
+                alert('¡Gracias por tu feedback! Mejoraremos continuamente.');
+            }
+        }
+        
+        // Marcar respuesta como confusa
+        function markAsConfusing() {
+            if (interactions.length > 0) {
+                interactions[interactions.length - 1].useful = false;
+                localStorage.setItem('tutoria_interactions', JSON.stringify(interactions));
+                alert('Lamentamos que no fuera clara la respuesta. ¿Podrías reformular tu pregunta?');
+            }
+        }
+        
+        // Guardar interacción
+        function saveInteraction() {
+            alert('Consulta guardada en tu historial.');
+            // En implementación real, se guardaría con más detalles
+        }
+        
+        // Actualizar el dashboard del profesor
+        function updateTeacherDashboard() {
+            // Calcular métricas básicas
+            const totalQueries = interactions.length;
+            const usefulResponses = interactions.filter(i => i.useful === true).length;
+            const usefulnessScore = totalQueries > 0 ? Math.round((usefulResponses / totalQueries) * 100) : 0;
+            
+            // Estimar estudiantes activos (en implementación real tendríamos datos reales)
+            const activeStudents = Math.min(25, Math.floor(totalQueries / 3));
+            
+            // Actualizar UI
+            document.getElementById('total-queries').textContent = totalQueries;
+            document.getElementById('usefulness-score').textContent = `${usefulnessScore}%`;
+            document.getElementById('active-students').textContent = activeStudents;
+            
+            // Mostrar patrones de consulta (simulado)
+            const queryPatterns = document.getElementById('query-patterns');
+            queryPatterns.innerHTML = `
+                <p><strong>Distribución por materias:</strong></p>
+                <p>Matemáticas: ${interactions.filter(i => i.subject === 'Matemáticas').length} consultas</p>
+                <p>Ciencias: ${interactions.filter(i => i.subject === 'Ciencias').length} consultas</p>
+                <p>Lenguaje: ${interactions.filter(i => i.subject === 'Lenguaje').length} consultas</p>
+                <p>General: ${interactions.filter(i => i.subject === 'General').length} consultas</p>
+            `;
+        }
+        
+        // Renderizar prompts predefinidos en la UI
+        function renderPredefinedPrompts() {
+            // Esta función aseguraría que la UI refleje los prompts actualizados
+            // (implementación completa en una versión extendida)
+        }
+        
+        // Agregar nuevo prompt (desde panel de configuración)
+        function addNewPrompt() {
+            const category = document.getElementById('category-select').value;
+            const title = document.getElementById('new-prompt-title').value;
+            const text = document.getElementById('new-prompt-text').value;
+            
+            if (!title || !text) {
+                alert('Por favor, completa título y texto del prompt.');
+                return;
+            }
+            
+            // Crear ID único
+            const id = title.toLowerCase().replace(/\s+/g, '-');
+            
+            // Agregar a la estructura de datos
+            if (!prompts[category]) prompts[category] = [];
+            prompts[category].push({ id, text });
+            
+            // Guardar en localStorage
+            localStorage.setItem('tutoria_prompts', JSON.stringify(prompts));
+            
+            alert('Nuevo prompt agregado con éxito.');
+            document.getElementById('new-prompt-title').value = '';
+            document.getElementById('new-prompt-text').value = '';
+        }
+        
+        // Guardar preferencias de IA
+        function saveAIPreferences() {
+            const preferences = {
+                deepseek: document.getElementById('deepseek-toggle').checked,
+                chatgpt: document.getElementById('chatgpt-toggle').checked,
+                copilot: document.getElementById('copilot-toggle').checked,
+                gemini: document.getElementById('gemini-toggle').checked
+            };
+            
+            localStorage.setItem('tutoria_ai_preferences', JSON.stringify(preferences));
+            alert('Preferencias guardadas correctamente.');
+        }
+        
+        // Exportar datos
+        function exportData(format) {
+            alert(`Funcionalidad de exportación a ${format} se conectaría con el backend en una implementación completa.`);
+            // En implementación real, generaría y descargaría el archivo
+        }
+    </script>
+</body>
+</html>
